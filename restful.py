@@ -4,6 +4,7 @@
 import requests
 
 from json import dumps
+from dotmap import DotMap
 
 
 class Client(object):
@@ -35,6 +36,9 @@ class Response(object):
 
     def json(self):
         return self._resp.json()
+
+    def dotmap(self):
+        return DotMap(self._resp.json())
 
     @property
     def content(self):
