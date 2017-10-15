@@ -13,8 +13,8 @@ class Client(object):
         self._sess = requests.Session()
 
     def do(self, method, url, params=None, data=None, headers=None,
-           timeout=20, cert=None, verify=True, *args, **kwargs):
-        req = requests.Request(method, url, params=params, data=data, headers=headers)
+           timeout=20, cert=None, verify=True, files=None, *args, **kwargs):
+        req = requests.Request(method, url, params=params, data=data, files=files, headers=headers)
         prepped = req.prepare()
         resp = self._sess.send(prepped, verify=verify, cert=cert, timeout=timeout)
         return resp
