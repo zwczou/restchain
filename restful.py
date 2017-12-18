@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 
+import time
+import logging
 import requests
 
 from json import dumps
@@ -16,7 +18,23 @@ class Client(object):
            timeout=20, cert=None, verify=True, files=None, *args, **kwargs):
         req = requests.Request(method, url, params=params, data=data, files=files, headers=headers)
         prepped = req.prepare()
+        start = time.time()
         resp = self._sess.send(prepped, verify=verify, cert=cert, timeout=timeout)
+
+        command = "curl -X {method} -H {headers} -d '{data}' '{uri}'"
+        req = resp.request
+        method = req.method
+        uri = req.url
+        data = req.body
+        headers = ['"{0}: {1}"'.format(k, v) for k, v in req.headers.items()]
+        headers = " -H ".join(headers)
+        curl_info = command.format(method=method, headers=headers, data=data or '', uri=uri)
+        spent = (time.time() - start) * 1000
+        logger = logging.error
+        if resp.status_code < 300:
+            logger = logging.info
+        logger("request [{}] spent [{}]ms response status [{} - {}]".format(curl_info, spent, resp.status_code, resp.reason))
+
         return resp
 
     def get(self, url, *args, **kwargs):

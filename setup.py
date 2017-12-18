@@ -7,7 +7,7 @@ from distutils.core import setup
 setup(
     name='restchain',
     py_modules=['restful'],
-    version='0.2.2',
+    version='0.2.3',
     description='restful',
     author='zakzou',
     author_email='zakzou@gmail.com',
