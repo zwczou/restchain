@@ -31,9 +31,11 @@ class Client(object):
         curl_info = command.format(method=method, headers=headers, data=data or '', uri=uri)
         spent = (time.time() - start) * 1000
         logger = logging.error
+        content = resp.content
         if resp.status_code < 300:
             logger = logging.info
-        logger("request [{}] spent [{}]ms response status [{} - {}]".format(curl_info, spent, resp.status_code, resp.reason))
+            content = ""
+        logger("request [{}] spent [{}]ms response status [{} - {}] response content [[{}]]".format(curl_info, spent, resp.status_code, resp.reason, content))
 
         return resp
 
