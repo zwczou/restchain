@@ -9,6 +9,26 @@ from json import dumps
 from dotmap import DotMap
 
 
+def debug_request(name, resp, start):
+    logger = logging.getLogger(name)
+
+    command = "curl -X {method} -H {headers} -d '{data}' '{uri}'"
+    req = resp.request
+    method = req.method
+    uri = req.url
+    data = req.body
+    headers = ['"{0}: {1}"'.format(k, v) for k, v in req.headers.items()]
+    headers = " -H ".join(headers)
+    curl_info = command.format(method=method, headers=headers, data=data or '', uri=uri)
+    spent = (time.time() - start) * 1000
+    log = logger.error
+    content = resp.content
+    if resp.status_code >= 200 and resp.status_code < 300:
+        log = logger.info
+        content = ""
+    log("request [{}] spent [{}]ms status [{} - {}] content [[{}]]".format(curl_info, spent, resp.status_code, resp.reason, content))
+
+
 class Client(object):
 
     def __init__(self):
@@ -20,23 +40,7 @@ class Client(object):
         prepped = req.prepare()
         start = time.time()
         resp = self._sess.send(prepped, verify=verify, cert=cert, timeout=timeout)
-
-        command = "curl -X {method} -H {headers} -d '{data}' '{uri}'"
-        req = resp.request
-        method = req.method
-        uri = req.url
-        data = req.body
-        headers = ['"{0}: {1}"'.format(k, v) for k, v in req.headers.items()]
-        headers = " -H ".join(headers)
-        curl_info = command.format(method=method, headers=headers, data=data or '', uri=uri)
-        spent = (time.time() - start) * 1000
-        logger = logging.error
-        content = resp.content
-        if resp.status_code < 300:
-            logger = logging.info
-            content = ""
-        logger("request [{}] spent [{}]ms response status [{} - {}] response content [[{}]]".format(curl_info, spent, resp.status_code, resp.reason, content))
-
+        debug_request(__name__, resp, start)
         return resp
 
     def get(self, url, *args, **kwargs):
